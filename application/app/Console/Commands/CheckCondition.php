@@ -38,8 +38,6 @@ class CheckCondition extends Command
      */
     public function handle()
     {
-        Log::info(__METHOD__);
-
         app()->call('App\Http\Controllers\CronController@check');
 
         return Command::SUCCESS;

@@ -1,9 +1,16 @@
-Панель проверка источников
+#Панель проверка источников
 
-docker-compose up --build -d
++ заполнить доступы к виджету amoCRM в application/.env.example
 
-панель будет доступна /admin (0.0.0.0:8090->80/tcp | gigant-panel_nginx_1)
+**команда** : `docker-compose up --build -d`
 
-настроить крон раз в минуту на команду:
+панель будет доступна **/admin** (0.0.0.0:8090->80/tcp | gigant-panel_nginx_1)
 
-docker exec -it gigant-panel_app_1 php artisan schedule:run
++ настроить крон раз в минуту:
+
+**команда** : `docker exec -it gigant-panel_app_1 php artisan schedule:run`
+
++ настроить хук на создание сделки в amoCRM на адрес: 
+
+**/api/cron/hook**
+

@@ -2,22 +2,27 @@
 
 namespace App\Services\amoCRM;
 
+use App\Models\Access;
 use Ufee\Amo\Oauthapi;
 
 class Client
 {
-    public EloquentStorage $storage;
+    public Access $storage;
     public Oauthapi $service;
 
-    public function init(EloquentStorage $storage): Client
+    public function init($model): Client
     {
-        $this->storage = $storage;
+        $this->storage = $model;
+
+        \Ufee\Amo\Oauthapi::setOauthStorage(
+            new EloquentStorage([], $model)
+        );
 
         $this->service = Oauthapi::setInstance([
-            'domain'        => $this->storage->model->subdomain,
-            'client_id'     => $this->storage->model->client_id,
-            'client_secret' => $this->storage->model->client_secret,
-            'redirect_uri'  => $this->storage->model->redirect_uri,
+            'domain'        => $this->storage->subdomain,
+            'client_id'     => $this->storage->client_id,
+            'client_secret' => $this->storage->client_secret,
+            'redirect_uri'  => $this->storage->redirect_uri,
         ]);
 
         try {
@@ -25,14 +30,14 @@ class Client
 
         } catch (\Exception $exception) {
 
-            if ($this->storage->model->refresh_token) {
+            if ($this->storage->refresh_token) {
 
-                $oauth = $this->service->refreshAccessToken($this->storage->model->refresh_token);
+                $oauth = $this->service->refreshAccessToken($this->storage->refresh_token);
 
             } else {
-                $oauth = $this->service->fetchAccessToken($this->storage->model->code);
+                $oauth = $this->service->fetchAccessToken($this->storage->code);
 
-                $this->storage->setOauth($this->storage->model->client_id, [
+                $this->storage->setOauth($this->storage->client_id, [
                     'token_type'    => $oauth['token_type'],
                     'expires_in'    => $oauth['expires_in'],
                     'access_token'  => $oauth['access_token'],

@@ -23,41 +23,46 @@ class CronController extends Controller
      */
     public function check()
     {
-        $settings = Setting::where('cron_status', 1)->get();
+        $datetime_now    = Carbon::createFromTimeString(date('H:i:s'))->timestamp;
+        $datetime_start  = Carbon::createFromTimeString(date('09:00:00'))->timestamp;
+        $datetime_finish = Carbon::createFromTimeString(date('21:00:00'))->timestamp;
 
-        if($settings->count() > 0) {
+        if ($datetime_now >= $datetime_start && $datetime_now <= $datetime_finish) {
 
-            foreach ($settings as $setting) {
+            $settings = Setting::where('cron_status', 1)->get();
 
-                $now_date = Carbon::now()->format('Y-m-d H:i:s');
+            if($settings->count() > 0) {
 
-                $current_check_date = Carbon::createFromFormat('Y-m-d H:i:s', $setting->current_check);
+                foreach ($settings as $setting) {
 
-                $current_add_timestamp = $current_check_date->addMinutes($setting->cron_time);
+                    $current_check_date = Carbon::createFromFormat('Y-m-d H:i:s', $setting->current_check);
 
-                if($current_add_timestamp < $now_date) {
+                    $current_add_timestamp = $current_check_date->addMinutes($setting->cron_time);
 
-                    $setting->current_check = $now_date;
-                    $setting->save();
+                    if($current_add_timestamp < $datetime_now) {
 
-                    $check = new Check();
-                    $check->source_name = $setting->source_name;
-                    $check->setting_id = $setting->id;
+                        $setting->current_check = $datetime_now;
+                        $setting->save();
 
-                    if($setting->checkFail($current_check_date)) {
+                        $check = new Check();
+                        $check->source_name = $setting->source_name;
+                        $check->setting_id = $setting->id;
 
-                        $check->result = 'exists';
-                        $check->save();
+                        if($setting->checkFail($current_check_date)) {
 
-                    } else {
+                            $check->result = 'exists';
+                            $check->save();
 
-                        $check->result = 'not found';
-                        $check->save();
+                        } else {
 
-                        \App\Services\Slack\Client::send(
-                            $setting->source_name,
-                            Check::where('result', 'leads exists')->first()?->setting->current_check,
-                        );
+                            $check->result = 'not found';
+                            $check->save();
+
+                            \App\Services\Slack\Client::send(
+                                $setting->source_name,
+                                Check::where('result', 'leads exists')->first()?->setting->current_check,
+                            );
+                        }
                     }
                 }
             }
@@ -80,7 +85,7 @@ class CronController extends Controller
                 'code'          => env('AMO_CODE'),
             ]);
 
-        $amocrm = (new Client())->init(new EloquentStorage([], $access));
+        $amocrm = (new Client())->init($access);
 
         $lead = $amocrm->service
             ->leads()

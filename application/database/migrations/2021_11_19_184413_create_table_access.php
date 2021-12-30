@@ -15,13 +15,14 @@ class CreateTableAccess extends Migration
     {
         Schema::create('access', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            //$table->timestamps();
 
             $table->string('account_id')->nullable();
 
             $table->string('name')->nullable();
 
             $table->string('subdomain')->nullable();
+            $table->string('created_at')->nullable();
             $table->text('access_token')->nullable();
             $table->text('refresh_token')->nullable();
             $table->text('code')->nullable();

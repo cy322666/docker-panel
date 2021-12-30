@@ -9,11 +9,14 @@ class Access extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'access';
 
     protected $fillable = [
         'account_id',
         'name',
+        'created_at',
         'subdomain',
         'access_token',
         'refresh_token',
