@@ -37,6 +37,7 @@ COPY . /var/www
 
 COPY --chown=www:www . /var/www
 COPY --chown=www:www ./start.sh /
+
 RUN chmod +x /start.sh
 
 EXPOSE 9000
